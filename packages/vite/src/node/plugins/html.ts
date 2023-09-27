@@ -14,8 +14,8 @@ import type {
   NodeTransform,
   TextNode
 } from '@vue/compiler-dom'
-import { NodeTypes } from '@vue/compiler-dom'
 import { stripLiteral } from 'strip-literal'
+import { VueNodeTypes as NodeTypes } from '../constants'
 import type { Plugin } from '../plugin'
 import type { ViteDevServer } from '../server'
 import {

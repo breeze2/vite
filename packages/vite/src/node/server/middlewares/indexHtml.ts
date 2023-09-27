@@ -3,7 +3,6 @@ import path from 'node:path'
 import MagicString from 'magic-string'
 import type { SourceMapInput } from 'rollup'
 import type { AttributeNode, ElementNode, TextNode } from '@vue/compiler-dom'
-import { NodeTypes } from '@vue/compiler-dom'
 import type { Connect } from 'types/connect'
 import type { IndexHtmlTransformHook } from '../../plugins/html'
 import {
@@ -20,6 +19,7 @@ import {
   CLIENT_PUBLIC_PATH,
   FS_PREFIX,
   NULL_BYTE_PLACEHOLDER,
+  VueNodeTypes as NodeTypes,
   VALID_ID_PREFIX
 } from '../../constants'
 import {

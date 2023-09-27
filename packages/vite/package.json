@@ -52,6 +52,7 @@
     "patch-types": "tsx scripts/patchTypes.ts",
     "roll-types": "api-extractor run && rimraf temp",
     "check-dist-types": "tsc --project tsconfig.check.json",
+    "test-browser": "tsx src/browser/serve.ts",
     "lint": "eslint --cache --ext .ts src/**",
     "format": "prettier --write --cache --parser typescript \"src/**/*.ts\"",
     "prepublishOnly": "npm run build"
