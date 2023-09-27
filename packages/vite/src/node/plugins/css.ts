@@ -1337,7 +1337,8 @@ type StylePreprocessorOptions = {
   enableSourcemap: boolean
 }
 
-type SassStylePreprocessorOptions = StylePreprocessorOptions & Sass.Options
+type SassStylePreprocessorOptions = StylePreprocessorOptions &
+  Sass.LegacyOptions<'async'>
 
 type StylePreprocessor = (
   source: string,
@@ -1403,7 +1404,7 @@ const scss: SassStylePreprocessor = async (
   resolvers
 ) => {
   const render = loadPreprocessor(PreprocessLang.sass, root).render
-  const internalImporter: Sass.Importer = (url, importer, done) => {
+  const internalImporter: Sass.LegacyAsyncImporter = (url, importer, done) => {
     resolvers.sass(url, importer).then((resolved) => {
       if (resolved) {
         rebaseUrls(resolved, options.filename, options.alias)
@@ -1427,7 +1428,7 @@ const scss: SassStylePreprocessor = async (
     options.additionalData,
     options.enableSourcemap
   )
-  const finalOptions: Sass.Options = {
+  const finalOptions: Sass.LegacyOptions<'async'> = {
     ...options,
     data,
     file: options.filename,
@@ -1443,12 +1444,12 @@ const scss: SassStylePreprocessor = async (
   }
 
   try {
-    const result = await new Promise<Sass.Result>((resolve, reject) => {
+    const result = await new Promise<Sass.LegacyResult>((resolve, reject) => {
       render(finalOptions, (err, res) => {
         if (err) {
           reject(err)
         } else {
-          resolve(res)
+          resolve(res!)
         }
       })
     })
@@ -1491,7 +1492,7 @@ async function rebaseUrls(
   file: string,
   rootFile: string,
   alias: Alias[]
-): Promise<Sass.ImporterReturnType> {
+): Promise<Sass.LegacyImporterResult> {
   file = path.resolve(file) // ensure os-specific flashes
   // in the same dir, no need to rebase
   const fileDir = path.dirname(file)
