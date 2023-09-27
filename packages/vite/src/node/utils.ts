@@ -3,9 +3,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { exec } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { URL, URLSearchParams, fileURLToPath } from 'node:url'
+import { URL, URLSearchParams } from 'node:url'
 import { builtinModules, createRequire } from 'node:module'
-import { promises as dns } from 'node:dns'
+// import { promises as dns } from 'node:dns'
 import { performance } from 'node:perf_hooks'
 import type { AddressInfo, Server } from 'node:net'
 import type { FSWatcher } from 'chokidar'
@@ -173,6 +173,7 @@ export function createDebugger(
 }
 
 function testCaseInsensitiveFS() {
+  return true
   if (!CLIENT_ENTRY.endsWith('client.mjs')) {
     throw new Error(
       `cannot test case insensitive FS, CLIENT_ENTRY const doesn't contain client.mjs`,
@@ -828,14 +829,15 @@ export function unique<T>(arr: T[]): T[] {
 export async function getLocalhostAddressIfDiffersFromDNS(): Promise<
   string | undefined
 > {
-  const [nodeResult, dnsResult] = await Promise.all([
-    dns.lookup('localhost'),
-    dns.lookup('localhost', { verbatim: true }),
-  ])
-  const isSame =
-    nodeResult.family === dnsResult.family &&
-    nodeResult.address === dnsResult.address
-  return isSame ? undefined : nodeResult.address
+  // const [nodeResult, dnsResult] = await Promise.all([
+  //   dns.lookup('localhost'),
+  //   dns.lookup('localhost', { verbatim: true }),
+  // ])
+  // const isSame =
+  //   nodeResult.family === dnsResult.family &&
+  //   nodeResult.address === dnsResult.address
+  // return isSame ? undefined : nodeResult.address
+  return undefined
 }
 
 export function diffDnsOrderChange(
@@ -985,7 +987,8 @@ export function getHash(text: Buffer | string): string {
   return createHash('sha256').update(text).digest('hex').substring(0, 8)
 }
 
-const _dirname = path.dirname(fileURLToPath(import.meta.url))
+// const _dirname = path.dirname(fileURLToPath(import.meta.url))
+const _dirname = '/'
 
 export const requireResolveFromRootWithFallback = (
   root: string,

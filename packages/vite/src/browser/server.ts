@@ -105,23 +105,9 @@ export async function _createServer(
   const config = await resolveConfig(inlineConfig, 'serve')
 
   const { root, server: serverConfig } = config
-  // const httpsOptions = await resolveHttpsConfig(config.server.https)
   const { middlewareMode } = serverConfig
 
-  // const resolvedWatchOptions = resolveChokidarOptions(config, {
-  //   disableGlobbing: true,
-  //   ...serverConfig.watch,
-  // })
-
   const middlewares = connect() as Connect.Server
-  // const httpServer = middlewareMode
-  //   ? null
-  //   : await resolveHttpServer(serverConfig, middlewares, httpsOptions)
-  // const ws = createWebSocketServer(httpServer, config, httpsOptions)
-
-  // if (httpServer) {
-  //   setClientErrorHandler(httpServer, config.logger)
-  // }
 
   const httpServer: http.Server | null = null
   const ws: any = {
@@ -129,22 +115,12 @@ export async function _createServer(
     send: (...args: any[]) => undefined,
     close: () => undefined,
   }
-
-   
-  // const watchEnabled = serverConfig.watch !== null
-  // const watcher = watchEnabled
-  //   ? (chokidar.watch(
-  //       // config file dependencies and env file might be outside of root
-  //       [root, ...config.configFileDependencies, config.envDir],
-  //       resolvedWatchOptions,
-  //     ) as FSWatcher)
-  //   : createNoopWatcher(resolvedWatchOptions)
-  const watcher = {} as any
-
+  const watcher: any = {
+    on: () => watcher,
+  }
   const moduleGraph: ModuleGraph = new ModuleGraph((url, ssr) =>
     container.resolveId(url, undefined, { ssr }),
   )
-
   const container = await createPluginContainer(config, moduleGraph, watcher)
   // const closeHttpServer = createServerCloseFn(httpServer)
 
@@ -183,7 +159,7 @@ export async function _createServer(
       //   undefined,
       //   opts?.fixStacktrace,
       // )
-      return {} as any
+      return {}
     },
     ssrFixStacktrace(e) {
       // ssrFixStacktrace(e, moduleGraph)
@@ -210,18 +186,7 @@ export async function _createServer(
       return server
     },
     openBrowser() {
-      // const options = server.config.server
-      // const url =
-      //   server.resolvedUrls?.local[0] ?? server.resolvedUrls?.network[0]
-      // if (url) {
-      //   const path =
-      //     typeof options.open === 'string'
-      //       ? new URL(options.open, url).href
-      //       : url
-      //   _openBrowser(path, true, server.config.logger)
-      // } else {
-      //   server.config.logger.warn('No URL available to open in browser')
-      // }
+      // do nothing
     },
     async close() {
       if (!middlewareMode) {
@@ -269,7 +234,7 @@ export async function _createServer(
       }
     },
     bindCLIShortcuts(options) {
-      // bindCLIShortcuts(server, options)
+      // do nothing
     },
     async restart(forceOptimize?: boolean) {
       // if (!server._restartPromise) {
@@ -377,10 +342,10 @@ export async function _createServer(
   }
 
   // cors (enabled by default)
-  const { cors } = serverConfig
-  if (cors !== false) {
-    middlewares.use(corsMiddleware(typeof cors === 'boolean' ? {} : cors))
-  }
+  // const { cors } = serverConfig
+  // if (cors !== false) {
+  //   middlewares.use(corsMiddleware(typeof cors === 'boolean' ? {} : cors))
+  // }
 
   // proxy
   const { proxy } = serverConfig
@@ -398,29 +363,29 @@ export async function _createServer(
 
   // ping request handler
   // Keep the named function. The name is visible in debug logs via `DEBUG=connect:dispatcher ...`
-  middlewares.use(function viteHMRPingMiddleware(req, res, next) {
-    if (req.headers['accept'] === 'text/x-vite-ping') {
-      res.writeHead(204).end()
-    } else {
-      next()
-    }
-  })
+  // middlewares.use(function viteHMRPingMiddleware(req, res, next) {
+  //   if (req.headers['accept'] === 'text/x-vite-ping') {
+  //     res.writeHead(204).end()
+  //   } else {
+  //     next()
+  //   }
+  // })
 
   // serve static files under /public
   // this applies before the transform middleware so that these files are served
   // as-is without transforms.
   if (config.publicDir) {
-    middlewares.use(
-      servePublicMiddleware(config.publicDir, config.server.headers),
-    )
+    // middlewares.use(
+    //   servePublicMiddleware(config.publicDir, config.server.headers),
+    // )
   }
 
   // main transform middleware
-  middlewares.use(transformMiddleware(server))
+  // middlewares.use(transformMiddleware(server))
 
   // serve static files
-  middlewares.use(serveRawFsMiddleware(server))
-  middlewares.use(serveStaticMiddleware(root, server))
+  // middlewares.use(serveRawFsMiddleware(server))
+  // middlewares.use(serveStaticMiddleware(root, server))
 
   // html fallback
   if (config.appType === 'spa' || config.appType === 'mpa') {
@@ -445,7 +410,7 @@ export async function _createServer(
   }
 
   // error handler
-  middlewares.use(errorMiddleware(server, middlewareMode))
+  // middlewares.use(errorMiddleware(server, middlewareMode))
 
   // httpServer.listen can be called multiple times
   // when port when using next port number
@@ -468,86 +433,10 @@ export async function _createServer(
     return initingServer
   }
 
-  if (!middlewareMode && httpServer) {
-    // overwrite listen to init optimizer before server start
-    // const listen = httpServer.listen.bind(httpServer)
-    // httpServer.listen = (async (port: number, ...args: any[]) => {
-    //   try {
-    //     // ensure ws server started
-    //     ws.listen()
-    //     await initServer()
-    //   } catch (e) {
-    //     httpServer.emit('error', e)
-    //     return
-    //   }
-    //   return listen(port, ...args)
-    // }) as any
-  } else {
-    if (options.ws) {
-      ws.listen()
-    }
-    await initServer()
-  }
+  await initServer()
 
   return server
 }
-
-// async function startServer(
-//   server: ViteDevServer,
-//   inlinePort?: number,
-// ): Promise<void> {
-//   const httpServer = server.httpServer
-//   if (!httpServer) {
-//     throw new Error('Cannot call server.listen in middleware mode.')
-//   }
-
-//   const options = server.config.server
-//   const port = inlinePort ?? options.port ?? DEFAULT_DEV_PORT
-//   const hostname = await resolveHostname(options.host)
-
-//   await httpServerStart(httpServer, {
-//     port,
-//     strictPort: options.strictPort,
-//     host: hostname.host,
-//     logger: server.config.logger,
-//   })
-// }
-
-// function createServerCloseFn(server: http.Server | null) {
-//   if (!server) {
-//     return () => {}
-//   }
-
-//   let hasListened = false
-//   const openSockets = new Set<net.Socket>()
-
-//   server.on('connection', (socket) => {
-//     openSockets.add(socket)
-//     socket.on('close', () => {
-//       openSockets.delete(socket)
-//     })
-//   })
-
-//   server.once('listening', () => {
-//     hasListened = true
-//   })
-
-//   return () =>
-//     new Promise<void>((resolve, reject) => {
-//       openSockets.forEach((s) => s.destroy())
-//       if (hasListened) {
-//         server.close((err) => {
-//           if (err) {
-//             reject(err)
-//           } else {
-//             resolve()
-//           }
-//         })
-//       } else {
-//         resolve()
-//       }
-//     })
-// }
 
 function resolvedAllowDir(root: string, dir: string): string {
   return normalizePath(path.resolve(root, dir))
@@ -601,61 +490,3 @@ export function resolveServerOptions(
 
   return server
 }
-
-// async function restartServer(server: ViteDevServer) {
-//   global.__vite_start_time = performance.now()
-//   const { port: prevPort, host: prevHost } = server.config.server
-//   const shortcutsOptions = server._shortcutsOptions
-//   const oldUrls = server.resolvedUrls
-
-//   let inlineConfig = server.config.inlineConfig
-//   if (server._forceOptimizeOnRestart) {
-//     inlineConfig = mergeConfig(inlineConfig, {
-//       optimizeDeps: {
-//         force: true,
-//       },
-//     })
-//   }
-
-//   let newServer = null
-//   try {
-//     // delay ws server listen
-//     newServer = await _createServer(inlineConfig, { ws: false })
-//   } catch (err: any) {
-//     server.config.logger.error(err.message, {
-//       timestamp: true,
-//     })
-//     server.config.logger.error('server restart failed', { timestamp: true })
-//     return
-//   }
-
-//   await server.close()
-
-//   // Assign new server props to existing server instance
-//   Object.assign(server, newServer)
-
-//   const {
-//     logger,
-//     server: { port, host, middlewareMode },
-//   } = server.config
-//   if (!middlewareMode) {
-//     await server.listen(port, true)
-//     logger.info('server restarted.', { timestamp: true })
-//     if (
-//       (port ?? DEFAULT_DEV_PORT) !== (prevPort ?? DEFAULT_DEV_PORT) ||
-//       host !== prevHost ||
-//       diffDnsOrderChange(oldUrls, newServer.resolvedUrls)
-//     ) {
-//       logger.info('')
-//       server.printUrls()
-//     }
-//   } else {
-//     server.ws.listen()
-//     logger.info('server restarted.', { timestamp: true })
-//   }
-
-//   if (shortcutsOptions) {
-//     shortcutsOptions.print = false
-//     bindCLIShortcuts(newServer, shortcutsOptions)
-//   }
-// }

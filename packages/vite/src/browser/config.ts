@@ -9,8 +9,6 @@ import colors from 'picocolors'
 import aliasPlugin from '@rollup/plugin-alias'
 import { build } from 'esbuild'
 import type { Plugin } from '../node/plugin'
-import { resolveBuildOptions } from '../node/build'
-import { resolveServerOptions } from '../node/server'
 import {
   // type CSSOptions,
   // type ResolvedCSSOptions,
@@ -32,11 +30,6 @@ import {
   normalizePath,
   withTrailingSlash,
 } from '../node/utils'
-import {
-  createPluginHookUtils,
-  getSortedPluginsByHook,
-  resolvePlugins,
-} from '../node/plugins'
 import {
   CLIENT_ENTRY,
   DEFAULT_ASSETS_RE,
@@ -64,6 +57,13 @@ import type {
   UserConfig,
   UserConfigExport,
 } from '../node/config'
+import { resolveBuildOptions } from './build'
+import {
+  createPluginHookUtils,
+  getSortedPluginsByHook,
+  resolvePlugins,
+} from './plugins'
+import { resolveServerOptions } from './server'
 
 const debug = createDebugger('vite:config')
 const promisifiedRealpath = promisify(fs.realpath)
@@ -83,7 +83,7 @@ export async function resolveConfig(
   // some dependencies e.g. @vue/compiler-* relies on NODE_ENV for getting
   // production-specific behavior, so set it early on
   if (!isNodeEnvSet) {
-    process.env.NODE_ENV = defaultNodeEnv
+    process['env']['NODE_ENV'] = defaultNodeEnv
   }
 
   const configEnv = {
@@ -230,7 +230,7 @@ export async function resolveConfig(
   const userNodeEnv = process.env.VITE_USER_NODE_ENV
   if (!isNodeEnvSet && userNodeEnv) {
     if (userNodeEnv === 'development') {
-      process.env.NODE_ENV = 'development'
+      process['env']['NODE_ENV'] = 'development'
     } else {
       // NODE_ENV=production is not supported as it could break HMR in dev for frameworks like Vue
       logger.warn(

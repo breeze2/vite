@@ -44,7 +44,7 @@ const importErrors = new WeakMap<Error, { importee: string }>()
 export async function ssrLoadModule(
   url: string,
   server: ViteDevServer,
-  context: SSRContext = { global },
+  context: SSRContext = { global: globalThis },
   urlStack: string[] = [],
   fixStacktrace?: boolean,
 ): Promise<SSRModule> {
@@ -80,7 +80,7 @@ export async function ssrLoadModule(
 async function instantiateModule(
   url: string,
   server: ViteDevServer,
-  context: SSRContext = { global },
+  context: SSRContext = { global: globalThis },
   urlStack: string[] = [],
   fixStacktrace?: boolean,
 ): Promise<SSRModule> {

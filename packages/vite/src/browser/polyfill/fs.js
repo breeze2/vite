@@ -10,6 +10,11 @@ export const {
   readdirSync,
   readFileSync,
   statSync,
+  stat,
+  lstat,
+  realpath,
+  open,
+  close,
 } = fs
 
 export default fs
