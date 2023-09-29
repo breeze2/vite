@@ -61,6 +61,9 @@ jobs:
       - name: Install deps
         run: pnpm install
 
+      - name: Test add lodash
+        run: pnpm -v && pnpm add -D lodash --filter vite
+
       # Install playwright's binary under custom directory to cache
       - name: Set Playwright path (non-windows)
         if: runner.os != 'Windows'
