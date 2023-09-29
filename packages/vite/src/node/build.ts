@@ -53,10 +53,9 @@ import { loadFallbackPlugin } from './plugins/loadFallback'
 import type { PackageData } from './packages'
 import { watchPackageDataPlugin } from './packages'
 import { ensureWatchPlugin } from './plugins/ensureWatch'
-import { ESBUILD_MODULES_TARGET, VERSION } from './constants'
+import { VERSION } from './constants'
 import { resolveChokidarOptions } from './watch'
 import { completeSystemWrapPlugin } from './plugins/completeSystemWrap'
-import { mergeConfig } from './publicUtils'
 
 export interface BuildOptions {
   /**
@@ -279,108 +278,6 @@ export type ResolveModulePreloadDependenciesFn = (
 export interface ResolvedBuildOptions
   extends Required<Omit<BuildOptions, 'polyfillModulePreload'>> {
   modulePreload: false | ResolvedModulePreloadOptions
-}
-
-export function resolveBuildOptions(
-  raw: BuildOptions | undefined,
-  logger: Logger
-): ResolvedBuildOptions {
-  const deprecatedPolyfillModulePreload = raw?.polyfillModulePreload
-  if (raw) {
-    const { polyfillModulePreload, ...rest } = raw
-    raw = rest
-    if (deprecatedPolyfillModulePreload !== undefined) {
-      logger.warn(
-        'polyfillModulePreload is deprecated. Use modulePreload.polyfill instead.'
-      )
-    }
-    if (
-      deprecatedPolyfillModulePreload === false &&
-      raw.modulePreload === undefined
-    ) {
-      raw.modulePreload = { polyfill: false }
-    }
-  }
-
-  const modulePreload = raw?.modulePreload
-  const defaultModulePreload = {
-    polyfill: true
-  }
-
-  const defaultBuildOptions: BuildOptions = {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    assetsInlineLimit: 4096,
-    cssCodeSplit: !raw?.lib,
-    sourcemap: false,
-    rollupOptions: {},
-    minify: raw?.ssr ? false : 'esbuild',
-    terserOptions: {},
-    write: true,
-    emptyOutDir: null,
-    copyPublicDir: true,
-    manifest: false,
-    lib: false,
-    ssr: false,
-    ssrManifest: false,
-    reportCompressedSize: true,
-    chunkSizeWarningLimit: 500,
-    watch: null
-  }
-
-  const userBuildOptions = raw
-    ? mergeConfig(defaultBuildOptions, raw)
-    : defaultBuildOptions
-
-  // @ts-expect-error Fallback options instead of merging
-  const resolved: ResolvedBuildOptions = {
-    target: 'modules',
-    cssTarget: false,
-    ...userBuildOptions,
-    commonjsOptions: {
-      include: [/node_modules/],
-      extensions: ['.js', '.cjs'],
-      ...userBuildOptions.commonjsOptions
-    },
-    dynamicImportVarsOptions: {
-      warnOnError: true,
-      exclude: [/node_modules/],
-      ...userBuildOptions.dynamicImportVarsOptions
-    },
-    // Resolve to false | object
-    modulePreload:
-      modulePreload === false
-        ? false
-        : typeof modulePreload === 'object'
-        ? {
-            ...defaultModulePreload,
-            ...modulePreload
-          }
-        : defaultModulePreload
-  }
-
-  // handle special build targets
-  if (resolved.target === 'modules') {
-    resolved.target = ESBUILD_MODULES_TARGET
-  } else if (resolved.target === 'esnext' && resolved.minify === 'terser') {
-    // esnext + terser: limit to es2021 so it can be minified by terser
-    resolved.target = 'es2021'
-  }
-
-  if (!resolved.cssTarget) {
-    resolved.cssTarget = resolved.target
-  }
-
-  // normalize false string into actual false
-  if ((resolved.minify as any) === 'false') {
-    resolved.minify = false
-  }
-
-  if (resolved.minify === true) {
-    resolved.minify = 'esbuild'
-  }
-
-  return resolved
 }
 
 export function resolveBuildPlugins(config: ResolvedConfig): {

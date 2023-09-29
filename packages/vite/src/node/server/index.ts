@@ -24,7 +24,6 @@ import {
 import type { InlineConfig, ResolvedConfig } from '../config'
 import { isDepsOptimizerEnabled, resolveConfig } from '../config'
 import {
-  isParentDirectory,
   mergeConfig,
   normalizePath,
   resolveHostname,
@@ -42,8 +41,6 @@ import {
   initDepsOptimizer,
   initDevSsrDepsOptimizer
 } from '../optimizer'
-import { CLIENT_DIR } from '../constants'
-import type { Logger } from '../logger'
 import { printServerUrls } from '../logger'
 import { invalidatePackageData } from '../packages'
 import { resolveChokidarOptions } from '../watch'
@@ -78,7 +75,6 @@ import {
 import { openBrowser } from './openBrowser'
 import type { TransformOptions, TransformResult } from './transformRequest'
 import { transformRequest } from './transformRequest'
-import { searchForWorkspaceRoot } from './searchRoot'
 
 export { searchForWorkspaceRoot } from './searchRoot'
 
@@ -725,55 +721,6 @@ function createServerCloseFn(server: http.Server | null) {
         resolve()
       }
     })
-}
-
-function resolvedAllowDir(root: string, dir: string): string {
-  return normalizePath(path.resolve(root, dir))
-}
-
-export function resolveServerOptions(
-  root: string,
-  raw: ServerOptions | undefined,
-  logger: Logger
-): ResolvedServerOptions {
-  const server: ResolvedServerOptions = {
-    preTransformRequests: true,
-    ...(raw as ResolvedServerOptions),
-    middlewareMode: !!raw?.middlewareMode
-  }
-  let allowDirs = server.fs?.allow
-  const deny = server.fs?.deny || ['.env', '.env.*', '*.{crt,pem}']
-
-  if (!allowDirs) {
-    allowDirs = [searchForWorkspaceRoot(root)]
-  }
-
-  allowDirs = allowDirs.map((i) => resolvedAllowDir(root, i))
-
-  // only push client dir when vite itself is outside-of-root
-  const resolvedClientDir = resolvedAllowDir(root, CLIENT_DIR)
-  if (!allowDirs.some((dir) => isParentDirectory(dir, resolvedClientDir))) {
-    allowDirs.push(resolvedClientDir)
-  }
-
-  server.fs = {
-    strict: server.fs?.strict ?? true,
-    allow: allowDirs,
-    deny
-  }
-
-  if (server.origin?.endsWith('/')) {
-    server.origin = server.origin.slice(0, -1)
-    logger.warn(
-      colors.yellow(
-        `${colors.bold('(!)')} server.origin should not end with "/". Using "${
-          server.origin
-        }" instead.`
-      )
-    )
-  }
-
-  return server
 }
 
 async function restartServer(server: ViteDevServer) {

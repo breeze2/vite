@@ -14,12 +14,14 @@ import type {
   RenderBuiltAssetUrl,
   ResolvedBuildOptions
 } from './build'
-import { resolveBuildOptions } from './build'
 import type { ResolvedServerOptions, ServerOptions } from './server'
-import { resolveServerOptions } from './server'
 import type { PreviewOptions, ResolvedPreviewOptions } from './preview'
-import { resolvePreviewOptions } from './preview'
 import type { CSSOptions } from './plugins/css'
+import {
+  resolveBuildOptions,
+  resolvePreviewOptions,
+  resolveServerOptions
+} from './options'
 import {
   asyncFlatten,
   createDebugger,
