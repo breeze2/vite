@@ -1,9 +1,7 @@
 import path, { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-// @ts-expect-error
-import { version } from '../../package.json'
 
-export const VERSION = version as string
+export const VERSION = '3.2.7'
 
 export const DEFAULT_MAIN_FIELDS = [
   'module',
